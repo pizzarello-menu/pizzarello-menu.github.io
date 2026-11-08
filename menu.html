@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pizzarello · Menù</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#4a1a15">
+<link rel="icon" href="assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preload" href="vendor/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="estilos.css?v=11">
+</head>
+<body class="visor">
+
+<header class="barra">
+  <a class="boton-icono" id="volver" href="index.html" aria-label="Lingue">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+  </a>
+
+  <nav class="banderas-mini" aria-label="Lingua">
+    <a href="menu.html?lang=it" data-lang="it" lang="it" title="Italiano"><img src="banderas/it.svg" alt="Italiano"></a>
+    <a href="menu.html?lang=en" data-lang="en" lang="en" title="English"><img src="banderas/en.svg" alt="English"></a>
+    <a href="menu.html?lang=fr" data-lang="fr" lang="fr" title="Français"><img src="banderas/fr.svg" alt="Français"></a>
+    <a href="menu.html?lang=es" data-lang="es" lang="es" title="Español"><img src="banderas/es.svg" alt="Español"></a>
+    <a href="menu.html?lang=de" data-lang="de" lang="de" title="Deutsch"><img src="banderas/de.svg" alt="Deutsch"></a>
+  </nav>
+
+  <button class="boton-icono" id="compartir" type="button" aria-label="Condividi">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/>
+      <path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/>
+    </svg>
+  </button>
+</header>
+
+<main id="paginas" class="paginas" aria-live="polite">
+  <div class="cargando" id="cargando">
+    <img src="assets/favicon.png" alt="" width="56" height="56">
+    <span id="texto-cargando">Caricamento…</span>
+  </div>
+</main>
+
+<button class="flotante" id="modo" type="button" hidden>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path id="icono-modo" d=""/></svg>
+  <span id="texto-modo"></span>
+</button>
+
+<div class="aviso" id="aviso" role="status" hidden></div>
+
+<script src="vendor/pdfjs/pdf.min.js"></script>
+<script>
+(function () {
+  var TEXTOS = {
+    it: { titulo: "Menù", cargando: "Caricamento del menù…", volver: "Cambia lingua", compartir: "Condividi",
+          copiado: "Link copiato", texto: "Il menù di Pizzarello – Tegamino e Farinata",
+          aviso: "Scorri di lato per vedere tutto il menù", error: "Non riusciamo a mostrare il menù qui.", abrir: "Apri il PDF",
+          entera: "Vedi intero", ampliar: "Ingrandisci" },
+    en: { titulo: "Menu", cargando: "Loading the menu…", volver: "Change language", compartir: "Share",
+          copiado: "Link copied", texto: "Pizzarello's menu – Tegamino e Farinata",
+          aviso: "Swipe sideways to see the whole menu", error: "We can't display the menu here.", abrir: "Open the PDF",
+          entera: "Whole page", ampliar: "Zoom in" },
+    fr: { titulo: "Carte", cargando: "Chargement de la carte…", volver: "Changer de langue", compartir: "Partager",
+          copiado: "Lien copié", texto: "La carte de Pizzarello – Tegamino e Farinata",
+          aviso: "Faites glisser pour voir toute la carte", error: "Impossible d'afficher la carte ici.", abrir: "Ouvrir le PDF",
+          entera: "Page entière", ampliar: "Agrandir" },
+    es: { titulo: "Carta", cargando: "Cargando la carta…", volver: "Cambiar idioma", compartir: "Compartir",
+          copiado: "Enlace copiado", texto: "La carta de Pizzarello – Tegamino e Farinata",
+          aviso: "Desliza hacia el lado para ver toda la carta", error: "No podemos mostrar la carta aquí.", abrir: "Abrir el PDF",
+          entera: "Ver entera", ampliar: "Ampliar" },
+    de: { titulo: "Speisekarte", cargando: "Speisekarte wird geladen…", volver: "Sprache wechseln", compartir: "Teilen",
+          copiado: "Link kopiert", texto: "Die Speisekarte von Pizzarello – Tegamino e Farinata",
+          aviso: "Zur Seite wischen, um alles zu sehen", error: "Die Speisekarte kann hier nicht angezeigt werden.", abrir: "PDF öffnen",
+          entera: "Ganze Seite", ampliar: "Vergrößern" }
+  };
+  var ICONOS = {
+    entera: "M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5",      // marco: ver la página entera
+    ampliar: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M11 8v6M8 11h6"  // lupa +
+  };
+
+  var param = new URLSearchParams(location.search).get("lang");
+  var lang = TEXTOS[param] ? param : "it";
+  var t = TEXTOS[lang];
+  var pdfUrl = "menus/menu_" + lang + ".pdf";
+
+  document.documentElement.lang = lang;
+  document.title = "Pizzarello · " + t.titulo;
+  document.getElementById("texto-cargando").textContent = t.cargando;
+  document.getElementById("volver").setAttribute("aria-label", t.volver);
+  // Avisos breves en la parte inferior (consejo de uso, "enlace copiado"…)
+  var aviso = document.getElementById("aviso"), temporizador;
+  function mostrarAviso(texto, ms) {
+    clearTimeout(temporizador);
+    aviso.textContent = texto;
+    aviso.classList.remove("oculto");
+    aviso.hidden = false;
+    temporizador = setTimeout(function () {
+      aviso.classList.add("oculto");
+      temporizador = setTimeout(function () { aviso.hidden = true; }, 600);
+    }, ms || 3000);
+  }
+
+  // Compartir: se comparte la portada (quien lo recibe elige su idioma)
+  var compartir = document.getElementById("compartir");
+  compartir.setAttribute("aria-label", t.compartir);
+  compartir.title = t.compartir;
+  compartir.addEventListener("click", function () {
+    var enlace = new URL(".", location.href).href;
+    if (navigator.share) {
+      navigator.share({ title: "Pizzarello", text: t.texto, url: enlace }).catch(function () {});
+      return;
+    }
+    var copiar = navigator.clipboard && navigator.clipboard.writeText
+      ? navigator.clipboard.writeText(enlace) : Promise.reject();
+    copiar.then(function () { mostrarAviso(t.copiado, 2500); })
+          .catch(function () { mostrarAviso(enlace, 6000); });   // último recurso: mostrar el enlace
+  });
+  document.querySelectorAll(".banderas-mini a").forEach(function (a) {
+    if (a.dataset.lang === lang) { a.setAttribute("aria-current", "page"); }
+  });
+
+  var contenedor = document.getElementById("paginas");
+
+  function mostrarError() {
+    contenedor.innerHTML =
+      '<div class="error"><p></p><a class="boton" href="' + pdfUrl + '"></a></div>';
+    contenedor.querySelector("p").textContent = t.error;
+    contenedor.querySelector("a").textContent = t.abrir;
+  }
+
+  if (!window.pdfjsLib) { mostrarError(); return; }
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "vendor/pdfjs/pdf.worker.min.js";
+
+  var documento = null, claveActual = "", turno = 0, proporcion = 1;
+  // Teléfono en vertical: la carta (apaisada) se muestra a toda la altura y se recorre deslizando.
+  var vertical = window.matchMedia("(orientation: portrait) and (max-width: 700px)");
+  var modoAlto = vertical.matches;
+  var botonModo = document.getElementById("modo");
+
+  function actualizarBoton() {
+    botonModo.hidden = !vertical.matches;
+    var clave = modoAlto ? "entera" : "ampliar";
+    document.getElementById("texto-modo").textContent = t[clave];
+    document.getElementById("icono-modo").setAttribute("d", ICONOS[clave]);
+  }
+  botonModo.addEventListener("click", function () {
+    modoAlto = !modoAlto;
+    actualizarBoton();
+    render();
+  });
+
+  function anchoCss() {
+    var ancho = contenedor.clientWidth - 20;
+    if (!modoAlto || !vertical.matches) { return ancho; }
+    var barra = document.querySelector(".barra").offsetHeight;
+    var alto = window.innerHeight - barra - 28;
+    return Math.max(ancho, Math.round(alto / proporcion));
+  }
+
+  function render() {
+    if (!documento) { return; }
+    var ancho = anchoCss();
+    var clave = (modoAlto && vertical.matches ? "A" : "E") + Math.round(ancho / 24);
+    if (clave === claveActual) { return; }
+    claveActual = clave;
+    contenedor.classList.toggle("alto", modoAlto && vertical.matches);
+    var miTurno = ++turno;
+    var fragmento = document.createDocumentFragment();
+    var cadena = Promise.resolve();
+    for (var n = 1; n <= documento.numPages; n++) {
+      (function (n) {
+        cadena = cadena.then(function () { return documento.getPage(n); }).then(function (pagina) {
+          if (miTurno !== turno) { return; }
+          var base = pagina.getViewport({ scale: 1 });
+          var escalaCss = ancho / base.width;
+          // resolución extra para que se lea nítido al ampliar con los dedos
+          var calidad = Math.min((window.devicePixelRatio || 1) * 2, 3600 / ancho);
+          var vista = pagina.getViewport({ scale: escalaCss * calidad });
+          var canvas = document.createElement("canvas");
+          canvas.width = Math.floor(vista.width);
+          canvas.height = Math.floor(vista.height);
+          canvas.style.width = ancho + "px";
+          canvas.style.aspectRatio = base.width + " / " + base.height;
+          canvas.className = "pagina";
+          canvas.setAttribute("role", "img");
+          canvas.setAttribute("aria-label", "Pizzarello – " + t.titulo + " (" + n + "/" + documento.numPages + ")");
+          fragmento.appendChild(canvas);
+          return pagina.render({ canvasContext: canvas.getContext("2d"), viewport: vista }).promise;
+        });
+      })(n);
+    }
+    cadena.then(function () {
+      if (miTurno !== turno) { return; }
+      contenedor.innerHTML = "";
+      contenedor.appendChild(fragmento);
+      contenedor.scrollLeft = 0;
+    }).catch(mostrarError);
+  }
+
+  pdfjsLib.getDocument(pdfUrl).promise.then(function (doc) {
+    documento = doc;
+    return doc.getPage(1);
+  }).then(function (p1) {
+    var v = p1.getViewport({ scale: 1 });
+    proporcion = v.height / v.width;
+    actualizarBoton();
+    render();
+    // consejo de uso, solo en teléfonos en vertical
+    if (vertical.matches) { mostrarAviso(t.aviso, 4200); }
+  }).catch(mostrarError);
+
+  var espera;
+  window.addEventListener("resize", function () {
+    clearTimeout(espera);
+    espera = setTimeout(function () { actualizarBoton(); render(); }, 250);
+  });
+})();
+</script>
+</body>
+</html>
