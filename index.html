@@ -89,31 +89,13 @@
       </svg>
       <span>Just Eat</span>
     </a>
-    <a class="red red-maps" href="https://www.google.com/maps/search/?api=1&amp;query=Pizzarello%2C%20Piazza%20Vincenzo%20Arbarello%204%2FG%2C%2010122%20Torino" target="_blank" rel="noopener">
+    <a class="red red-maps" href="https://maps.app.goo.gl/VGeoyqMKYEtq3rDg6" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>
       </svg>
       <span>Maps</span>
     </a>
   </nav>
-
-  <script>
-    // Android: el navegador integrado (cámara, Google Lens, WhatsApp…) no logra pasar el enlace web
-    // de Google Maps a la app y vuelve atrás. Allí se abre la app de Maps directamente; si no está
-    // instalada, Android abre la versión web (browser_fallback_url). iPhone y computadoras: enlace normal.
-    (function () {
-      var maps = document.querySelector(".red-maps");
-      if (!maps || !/Android/i.test(navigator.userAgent)) { return; }
-      maps.addEventListener("click", function (e) {
-        var web = maps.href;
-        var sinEsquema = web.replace(/^https?:\/\//, "");
-        e.preventDefault();
-        location.href = "intent://" + sinEsquema +
-          "#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=" +
-          encodeURIComponent(web) + ";end";
-      });
-    })();
-  </script>
 
   <footer class="pie">
     <img class="pie-icono" src="assets/favicon.png" alt="" width="28" height="28">
