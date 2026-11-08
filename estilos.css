@@ -227,6 +227,33 @@ a { color: inherit; -webkit-tap-highlight-color: transparent; }
 }
 .red svg .punto { fill: var(--naranja); stroke: none; }
 
+/* Botón de reseña en Google: ancho completo, con la estrella como acento */
+.resena {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: 0;
+  background: #ffffff;
+  color: var(--vino);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  animation: aparecer 0.3s 0.12s ease-out both;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+.resena:not([href^="http"]) { display: none; }
+.resena:hover { background: #FCE9E4; }
+.resena:active { transform: scale(0.98); }
+.resena:focus-visible { outline: 3px solid var(--naranja); outline-offset: 3px; }
+.resena svg { flex: none; width: 19px; height: 19px; fill: #F5B041; stroke: #F08634; stroke-width: 1.2; stroke-linejoin: round; }
+
 .pie {
   margin-top: auto;
   padding-top: clamp(14px, 3vh, 28px);

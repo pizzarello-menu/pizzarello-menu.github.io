@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pizzarello-menu.github.io/sitemap.xml
