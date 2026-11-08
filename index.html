@@ -97,6 +97,24 @@
     </a>
   </nav>
 
+  <script>
+    // Android: el navegador integrado (cámara, Google Lens, WhatsApp…) no logra pasar el enlace web
+    // de Google Maps a la app y vuelve atrás. Allí se abre la app de Maps directamente; si no está
+    // instalada, Android abre la versión web (browser_fallback_url). iPhone y computadoras: enlace normal.
+    (function () {
+      var maps = document.querySelector(".red-maps");
+      if (!maps || !/Android/i.test(navigator.userAgent)) { return; }
+      maps.addEventListener("click", function (e) {
+        var web = maps.href;
+        var sinEsquema = web.replace(/^https?:\/\//, "");
+        e.preventDefault();
+        location.href = "intent://" + sinEsquema +
+          "#Intent;scheme=https;package=com.google.android.apps.maps;S.browser_fallback_url=" +
+          encodeURIComponent(web) + ";end";
+      });
+    })();
+  </script>
+
   <footer class="pie">
     <img class="pie-icono" src="assets/favicon.png" alt="" width="28" height="28">
     <p>© Pizzarello</p>
